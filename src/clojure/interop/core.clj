@@ -1,11 +1,18 @@
 (ns interop.core)
 
-(defn print-string [arg]
-  ;;; pass a Clojure vector where Java expects a java.util.Collection
-  (println (java.util.HashSet. ["1" "2"]))
+(defn proxy-coll []
+  (proxy [java.util.Collection] []
+    (add [o]
+         (println o)
+         true)))
 
-  ;;; pass a Clojure map where Java expects a java.util.Map
-  (println (java.util.LinkedHashMap. {1 "1" 2 "2"}))
+(defn reify-coll []
+  (reify java.util.Collection
+    (add [this o]
+         (println o)
+         (println this)
+         true)))
 
-  ;;; pass a Clojure function where Java expects a Runnable
-  (println (Thread. (fn [] (println "clojure fns are runnables (and callables)")))))
+(defn main []
+  (.add (proxy-coll) "this string is printed on proxied.add")
+  (.add (reify-coll) "this string is printed on reified.add"))
